@@ -13,7 +13,7 @@ Which is also used in http://overpass-turbo.eu/s/Aqy
 
 To see the live version:
 
-https://amsterdam.github.io/truck_route_osm_amsterdam_nlmaps
+https://amsterdam.github.io/truck_route_osm_amaps/
 
 
 see [`src/README.md`](examples/README.md) for explanation on usage. Below is documentation on the build/development setup.
