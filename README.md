@@ -1,55 +1,81 @@
-# amaps
-implementation of nlmaps for Amsterdam (for testing)
+# Vrachtverkeer route > 7,5 ton Centrum Amsterdam
+implementation of nlmaps and osmtogeojson for Amsterdam
 
-This repo contains a reference implementation of nlmaps with Amsterdam's extensions and styling, for testing purposes. The goal is to demonstrate correct working of nlmaps in an application using browser tests. For code unit testing, see the [nlmaps](https://github.com/webmapper/nlmaps) repository.
+This repository builds `nlmaps` with a configuration file for Amsterdam, specifying Amsterdam's map styling and map layers. In addition, this repository contains several wrapper scripts which bundle the resulting `nlmaps` build with functionality for specific use cases, like querying certain API's when the map is clicked. 
 
-in `test/index.html` is a simple webpage which loads the latest release of `nlmaps` (currently this is by pulling the browser js release from github.com/webmapper/nlmaps. It could also install `nlmaps` from npm.) The tests are defined or loaded in `test/test.js`. The tests include:
+This implementation is a fork of:
+- https://github.com/webmapper/amaps
 
-* testing for successful loading of map with nlmaps
-* ARIA testing using pa11y.
+And uses this javascript library:
+- https://github.com/tyrasd/osmtogeojson
 
-The test runner is in `scripts/serve.js`. This serves index.html with a simple web server, and then runs tests from test.js.
+Which is also used in http://overpass-turbo.eu/s/Aqy
 
-Usage
------
+To see the live version:
 
-### with `docker-compose`
+https://amsterdam.github.io/truck_route_osm_amsterdam_nlmaps
 
-The primary way to run the tests is with `docker-compose`.
 
-First build nlmaps with the `build-nlmaps` container. The results are put in a volume which will be shared to the test containers.
+see [`src/README.md`](examples/README.md) for explanation on usage. Below is documentation on the build/development setup.
 
-    docker-compose up --build nlmaps
+## How it works
+This repo installs a local copy of `nlmaps`, then compiles it with the custom configuration file at `config/amsterdam.config.js`.
+In `docs/` are html and js files:
 
-now you can run the tests:
+ `index.html`: is the configuration of `nlmaps` and `osmtogeojson`
+
+
+Versioning
+----------
+Changes to the config file (`config/amsterdam.config.js`) and to the functionality of the wrapper scripts should be reflected by updating the `version` field in `package.json`.
+
+When `nlmaps` receives an update, the `nlmaps_version` field in `package.json` should be incremented to the new nlmaps version. The build process for `amaps` looks at this field to determine which release of `nlmaps` to pull and build.
+
+
+Usage summary
+-------------
+
+### with npm, for local development
+
+1. `npm install`
+2. `npm run nlmaps` fetches and installs latest release of `nlmaps` and builds with custom config
+3. `npm run build-amaps` compile the wrapper scripts and assets.
+
+To serve (required before running `test` and `lint`): `npm run serve`.
+
+To test: `npm run test`
+
+To lint: `npm run lint`
+
+
+#### development server
+Instead of running the above commands separately, you can run a live-reloading development server: `npm run dev`. This watches `src/` and the config file in `config/amsterdam.config.js`, rebuilds and runs tests on changes. You can access the demo html pages at:
+
+    localhost:8080/index.html
+    localhost:8080/mora.html
+    localhost:8080/tvm.html
+
+If you want to serve and test without using the `dev` command, the server needs to be running in a separate terminal window.
+
+#### production build and releasing
+
+to build for production, which puts output in `dist/` instead of `test/dist/`, run:
+
+
+`npm run build-amaps -- --production`
+
+`dist/` will contain browser and Ecmascript builds of the Javascript for the `amaps` applications.
+
+copy these files to the docs folder and all is updated.
+
+
+### with docker (used by Jenkins CI)
+
+from a fresh install with no `build_nlmaps` docker image on your machine:
+
+To run the http server in Docker: `docker-compose up --build -d serve` (accessible on port 8095)
+
+To run tests and lint:
 
     docker-compose up --build --exit-code-from test test
-    docker-compose up --build --exit-code-from watch-test watch-test
     docker-compose up --build --exit-code-from lint lint
-
-### Running directly
-In order to run the tests directly without `docker-compose`, you need to provide the compiled `nlmaps` code since the test html file expects to load it from the test server. You have two options:
-
-1. modify `test/index.html` to load `nlmaps.iife.js` from a server somewhere (e.g. if you have built it with a custom config in a repo on Github)
-2. clone and build nlmaps (optionally with a custom config), and then symlink the nlmaps directory into the `test` directory. First build nlmaps somewhere, and then you can symlink it. In the `test` directory:
-
-    ln -s /path/to/nlmaps
-
-Now you can run the tests from the root directory:
-
-    npm run test
-
-During development, to rerun the tests on changes to your test files, run:
-
-    npm run watch-test
-
-To lint the code:
-
-    npm run lint
-
-
-Todo
-----
-* Tests are currently very basic. They will be expanded as new features are developed.
-* install nlmaps from npm instead of loading from Github? (would require JS compile step).
-
